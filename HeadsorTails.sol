@@ -1,5 +1,6 @@
 // Version of Solidity compiler this program was written for
 pragma solidity ^0.8.0;
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 // Heads or tails game contract
 contract HeadsOrTails {
@@ -17,18 +18,11 @@ contract HeadsOrTails {
   Game[] lastPlayedGames;
 
   //Log game result (heads 0 or tails 1) in order to display it on frontend
-  event GameResult(uint8 side);
+  event GameResult(uint8 indexed side);
 
   // Contract constructor run only on contract creation. Set owner.
   constructor() {
     owner = msg.sender;
-    name = "FundsFi Heads or Tails Contract";
-  }
-
-  //add this modifier to functions, which should only be accessible by the owner
-  modifier onlyOwner {
-    require(msg.sender == owner, "This function can only be launched by the owner");
-    _;
   }
 
   //Play the game!
@@ -40,15 +34,15 @@ contract HeadsOrTails {
     //address(this).balance is increased by msg.value even before code is executed. Thus "address(this).balance-msg.value"
     //Create a random number. Use the mining difficulty & the player's address, hash it, convert this hex to int, divide by modulo 2 which results in either 0 or 1 and return as uint8
     uint8 result = uint8(uint256(vrf())%2);
-    bool won = false;
+    bool won;
     if (guess == result) {
       //Won!
       payable(msg.sender).transfer(msg.value * 2);
       won = true;
     }
 
-    emit GameResult(result);
     lastPlayedGames.push(Game(msg.sender, msg.value, guess, won, address(this).balance));
+    emit GameResult(result);
     return won; //Return value can only be used by other functions, but not within web3.js (as of 2019)
   }
 
