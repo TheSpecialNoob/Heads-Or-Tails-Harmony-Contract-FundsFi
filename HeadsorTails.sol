@@ -35,10 +35,11 @@ contract HeadsOrTails {
   function lottery(uint8 guess) public payable returns(bool){
     require(guess == 0 || guess == 1, "Variable 'guess' should be either 0 ('heads') or 1 ('tails')");
     require(msg.value > 0, "Bet more than 0");
+    require(msg.sender == tx.origin,"Contract call not allowed");
     require(msg.value <= address(this).balance - msg.value, "You cannot bet more than what is available in the jackpot");
     //address(this).balance is increased by msg.value even before code is executed. Thus "address(this).balance-msg.value"
     //Create a random number. Use the mining difficulty & the player's address, hash it, convert this hex to int, divide by modulo 2 which results in either 0 or 1 and return as uint8
-    uint8 result = uint8(uint256(keccak256(abi.encodePacked(block.difficulty, msg.sender, block.timestamp)))%2);
+    uint8 result = uint8(uint256(vrf())%2);
     bool won = false;
     if (guess == result) {
       //Won!
@@ -79,6 +80,20 @@ contract HeadsOrTails {
     require(amount < address(this).balance, "You cannot withdraw more than what is available in the contract");
     owner.transfer(amount);
   }
+
+  function vrf() private view returns (bytes32 result) {
+        uint256[1] memory bn;
+        bn[0] = block.number;
+        assembly {
+            let memPtr := mload(0x40)
+            if iszero(staticcall(not(0), 0xff, bn, 0x20, memPtr, 0x20)) {
+                invalid()
+            }
+            result := mload(memPtr)
+        }
+        return result;
+    }
+
 
   // Accept any incoming amount
   function () external payable {}
