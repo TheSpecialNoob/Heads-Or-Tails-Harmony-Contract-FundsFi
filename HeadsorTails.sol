@@ -1,5 +1,5 @@
 // Version of Solidity compiler this program was written for
-pragma solidity ^0.5.11;
+pragma solidity ^0.8.0;
 
 // Heads or tails game contract
 contract HeadsOrTails {
@@ -20,7 +20,7 @@ contract HeadsOrTails {
   event GameResult(uint8 side);
 
   // Contract constructor run only on contract creation. Set owner.
-  constructor() public {
+  constructor() {
     owner = msg.sender;
     name = "FundsFi Heads or Tails Contract";
   }
@@ -43,7 +43,7 @@ contract HeadsOrTails {
     bool won = false;
     if (guess == result) {
       //Won!
-      msg.sender.transfer(msg.value * 2);
+      payable(msg.sender).transfer(msg.value * 2);
       won = true;
     }
 
@@ -96,5 +96,5 @@ contract HeadsOrTails {
 
 
   // Accept any incoming amount
-  function () external payable {}
+  receive() external payable {}
 }
